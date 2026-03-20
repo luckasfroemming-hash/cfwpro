@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFW Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #080c14; --surface: #0f1520; --text: #e8edf5; --text2: #8a96aa; --green: #10d98a; --red: #f04f6e; --yellow: #f5a623; }
+body.light { --bg: #f0f4f8; --surface: #ffffff; --text: #0f1520; --text2: #5a6478; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; max-width: 430px; margin: 0 auto; transition: background 0.3s; }
+.page-scroll { height: calc(100vh - 116px); overflow-y: auto; }
+.header { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: var(--bg); border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 50; }
+.brand-name { font-size: 16px; font-weight: 700; }
+.brand-name span { color: var(--green); }
+.theme-toggle { width: 36px; height: 20px; background: var(--surface); border-radius: 10px; position: relative; cursor: pointer; }
+.theme-toggle::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--green); top: 2px; left: 2px; transition: transform 0.3s; }
+body.light .theme-toggle::after { transform: translateX(16px); }
+.nav { position: fixed; bottom: 0; width: 100%; max-width: 430px; height: 60px; background: var(--surface); border-top: 1px solid rgba(255,255,255,0.06); display: flex; z-index: 50; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; position: relative; }
+.nav-item.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 2px; background: var(--green); }
+.nav-label { font-size: 10px; color: var(--text2); }
+.nav-item.active .nav-label { color: var(--green); }
+.page { display: none; }
+.page.active { display: block; }
+.empresa-tabs { display: flex; padding: 16px 20px 0; gap: 6px; overflow-x: auto; }
+.etab { padding: 7px 16px; border-radius: 20px; font-size: 13px; border: 1px solid rgba(255,255,255,0.10); background: transparent; color: var(--text2); cursor: pointer; white-space: nowrap; }
+.etab.active { background: rgba(16,217,138,0.10); border-color: var(--green); color: var(--green); }
+.saldo-hero { margin: 16px 20px 0; background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 20px; }
+.saldo-valor { font-size: 34px; font-weight: 800; margin-bottom: 16px; }
+.saldo-valor.pos { color: var(--green); }
+.saldo-valor.neg { color: var(--red); }
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 20px 0; }
+.metric-card { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 14px 16px; }
+.metric-val { font-size: 17px; font-weight: 700; }
+.section-title { font-size: 13px; font-weight: 700; padding: 18px 20px 10px; }
+.trans-list { padding: 0 20px; }
+.trans-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.trans-avatar { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.trans-name { font-size: 13px; font-weight: 600; }
+.trans-amount { font-size: 14px; font-weight: 700; }
+.badge { display: inline-flex; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.badge.pago { background: rgba(16,217,138,0.10); color: var(--green); }
+.badge.pendente { background: rgba(245,166,35,0.10); color: var(--yellow); }
+.agenda-item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.agenda-day { font-size: 20px; font-weight: 800; }
+.rel-card { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 18px; cursor: pointer; }
+.rel-title { font-size: 15px; font-weight: 700; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: flex-end; }
+.modal-overlay.open { display: flex; }
+.modal-sheet { width: 100%; background: var(--surface); border-radius: 24px 24px 0 0; padding: 20px 20px 40px; max-height: 85vh; overflow-y: auto; }
+.modal-title { font-size: 18px; font-weight: 800; }
+.report-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.modal-close { width: 100%; padding: 14px; border-radius: 14px; background: var(--surface); color: var(--text); border: none; cursor: pointer; margin-top: 20px; font-weight: 600; }
+.bottom-space { height: 20px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand-name">CFW<span> Pro</span></div>
+  <div style="display: flex; gap: 12px; align-items: center;">
+    <div class="theme-toggle" onclick="toggleTheme()"></div>
+    <span id="themeIcon">🌙</span>
+  </div>
+</div>
+<nav class="nav">
+  <div class="nav-item active" onclick="navigate('dashboard',this)">
+    <span style="font-size: 19px;">◻</span>
+    <span class="nav-label">Dashboard</span>
+  </div>
+  <div class="nav-item" onclick="navigate('agenda',this)">
+    <span style="font-size: 19px;">📅</span>
+    <span class="nav-label">Agenda</span>
+  </div>
+  <div class="nav-item" onclick="navigate('relatorios',this)">
+    <span style="font-size: 19px;">📊</span>
+    <span class="nav-label">Relatórios</span>
+  </div>
+</nav>
+<div class="page active page-scroll" id="page-dashboard">
+  <div class="empresa-tabs">
+    <div class="etab active" onclick="selectEmpresa(this,'geral')">Geral</div>
+    <div class="etab" onclick="selectEmpresa(this,'cfw')">CFW</div>
+    <div class="etab" onclick="selectEmpresa(this,'retiparts')">Retiparts</div>
+    <div class="etab" onclick="selectEmpresa(this,'pessoal')">Pessoal</div>
+  </div>
+  <div class="saldo-hero">
+    <div style="font-size: 11px; color: var(--text2); text-transform: uppercase; margin-bottom: 10px;" id="empresa-label">Consolidado</div>
+    <div class="saldo-valor neg" id="saldo-principal">−R$ 54.156,20</div>
+    <div style="display: flex; gap: 12px; margin-top: 10px;">
+      <div class="legend-item"><div style="width: 6px; height: 6px; border-radius: 50%; background: var(--green);"></div>Entradas</div>
+      <div class="legend-item"><div style="width: 6px; height: 6px; border-radius: 50%; background: var(--red);"></div>Saídas</div>
+    </div>
+  </div>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div style="font-size: 11px; color: var(--text2); margin-bottom: 3px;">Entradas</div>
+      <div class="metric-val" style="color: var(--green);" id="m-entrada">R$ 4.196</div>
+    </div>
+    <div class="metric-card">
+      <div style="font-size: 11px; color: var(--text2); margin-bottom: 3px;">Saídas</div>
+      <div class="metric-val" style="color: var(--red);" id="m-saida">R$ 58.352</div>
+    </div>
+    <div class="metric-card">
+      <div style="font-size: 11px; color: var(--text2); margin-bottom: 3px;">A Receber</div>
+      <div class="metric-val" style="color: var(--yellow);" id="m-receber">R$ 0</div>
+    </div>
+    <div class="metric-card">
+      <div style="font-size: 11px; color: var(--text2); margin-bottom: 3px;">Pendente</div>
+      <div class="metric-val" style="color: var(--red);" id="m-pendente">R$ 8.400</div>
+    </div>
+  </div>
+  <div class="section-title">Lançamentos Recentes</div>
+  <div class="trans-list" id="trans-list"></div>
+  <div class="bottom-space"></div>
+</div>
+<div class="page page-scroll" id="page-agenda">
+  <div style="margin: 16px 20px 0; background: rgba(240,79,110,0.12); border: 1px solid rgba(240,79,110,0.25); border-radius: 14px; padding: 14px 16px; display: flex; gap: 12px;">
+    <div style="font-size: 22px;">⚠️</div>
+    <div>
+      <div style="font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: 2px;">1 vencimento em 3 dias</div>
+      <div style="font-size: 12px; color: var(--text2);">CFW · R$ 8.400,00 · 22/03/2026</div>
+    </div>
+  </div>
+  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text2); padding: 16px 20px 8px;">Março 2026</div>
+  <div class="agenda-item">
+    <div style="min-width: 44px; text-align: center; background: var(--surface); border-radius: 10px; padding: 8px 4px; border: 1px solid rgba(255,255,255,0.06);">
+      <div class="agenda-day" style="color: var(--red);">22</div>
+      <div style="font-size: 9px; color: var(--text2);">Mar</div>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 2px;">💸 Pagar — Fornecedor</div>
+      <div style="font-size: 11px; color: var(--text2);">CFW · Boleto · Pendente</div>
+    </div>
+    <div style="font-size: 14px; font-weight: 700; color: var(--red);">−R$ 8.400</div>
+  </div>
+  <div class="agenda-item">
+    <div style="min-width: 44px; text-align: center; background: var(--surface); border-radius: 10px; padding: 8px 4px; border: 1px solid rgba(255,255,255,0.06);">
+      <div class="agenda-day">28</div>
+      <div style="font-size: 9px; color: var(--text2);">Mar</div>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 2px;">💸 Pagar — Folha Retiparts</div>
+      <div style="font-size: 11px; color: var(--text2);">Retiparts · Transferência · Pendente</div>
+    </div>
+    <div style="font-size: 14px; font-weight: 700; color: var(--red);">−R$ 12.500</div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+<div class="page page-scroll" id="page-relatorios">
+  <div style="padding: 16px 20px 0; display: flex; flex-direction: column; gap: 12px;">
+    <div class="rel-card" onclick="openModal('dre')">
+      <div class="rel-title">📊 DRE — Resultado do Exercício</div>
+      <div style="font-size: 12px; color: var(--text2); margin-top: 8px;">Visão completa de receitas, custos e despesas.</div>
+    </div>
+    <div class="rel-card" onclick="openModal('fluxo')">
+      <div class="rel-title">💵 Fluxo de Caixa</div>
+      <div style="font-size: 12px; color: var(--text2); margin-top: 8px;">Acompanha entradas e saídas reais no período.</div>
+    </div>
+    <div class="rel-card" onclick="openModal('aging')">
+      <div class="rel-title">⏱ Aging — Análise de Inadimplência</div>
+      <div style="font-size: 12px; color: var(--text2); margin-top: 8px;">Mostra valores em aberto por faixa de prazo.</div>
+    </div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+<div class="modal-overlay" id="modal-dre" onclick="closeModal('dre')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">📊 DRE — Março 2026</div>
+    <div style="font-size: 12px; color: var(--text2); margin-bottom: 20px;">Consolidado</div>
+    <div class="report-row"><span>Receita Bruta</span><span style="color: var(--green);">+R$ 4.196,00</span></div>
+    <div class="report-row"><span>Custos Operacionais</span><span style="color: var(--red);">−R$ 50.328,96</span></div>
+    <div class="report-row"><span>Despesas Administrativas</span><span style="color: var(--red);">−R$ 8.023,24</span></div>
+    <div style="background: var(--surface); border-radius: 14px; padding: 16px; margin-top: 16px;">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">Resultado</div>
+      <div style="display: flex; justify-content: space-between; padding: 6px 0;"><span>Lucro/Prejuízo Líquido</span><strong style="color: var(--red);">−R$ 54.156,20</strong></div>
+    </div>
+    <button class="modal-close" onclick="closeModal('dre')">Fechar</button>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-fluxo" onclick="closeModal('fluxo')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">💵 Fluxo de Caixa — Março 2026</div>
+    <div style="font-size: 12px; color: var(--text2); margin-bottom: 20px;">Movimentações reais e projeção</div>
+    <div class="report-row"><span>Saldo Inicial</span><span>R$ 0,00</span></div>
+    <div class="report-row"><span>Entradas Realizadas</span><span style="color: var(--green);">+R$ 4.196,00</span></div>
+    <div class="report-row"><span>Saídas Realizadas</span><span style="color: var(--red);">−R$ 58.352,20</span></div>
+    <div style="background: var(--surface); border-radius: 14px; padding: 16px; margin-top: 16px;">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">Projeção</div>
+      <div style="display: flex; justify-content: space-between; padding: 6px 0;"><span>Saldo Projetado</span><strong style="color: var(--red);">−R$ 54.156,20</strong></div>
+    </div>
+    <button class="modal-close" onclick="closeModal('fluxo')">Fechar</button>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-aging" onclick="closeModal('aging')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">⏱ Aging — Março 2026</div>
+    <div style="font-size: 12px; color: var(--text2); margin-bottom: 20px;">Valores em aberto por faixa</div>
+    <div class="report-row"><span>0–15 dias</span><span style="color: var(--green);">R$ 8.400,00</span></div>
+    <div class="report-row"><span>16–30 dias</span><span style="color: var(--yellow);">R$ 0,00</span></div>
+    <div class="report-row"><span>31–60 dias</span><span>R$ 0,00</span></div>
+    <div class="report-row"><span>+60 dias</span><span style="color: var(--red);">R$ 0,00</span></div>
+    <div style="background: var(--surface); border-radius: 14px; padding: 16px; margin-top: 16px;">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">Resumo</div>
+      <div style="display: flex; justify-content: space-between; padding: 6px 0;"><span>Total em Aberto</span><strong style="color: var(--yellow);">R$ 8.400,00</strong></div>
+    </div>
+    <button class="modal-close" onclick="closeModal('aging')">Fechar</button>
+  </div>
+</div>
+<script>
+const empresas = {
+  geral: { label: 'Consolidado', saldo: '−R$ 54.156,20', neg: true, entrada: 'R$ 4.196', saida: 'R$ 58.352', receber: 'R$ 0', pendente: 'R$ 8.400', trans: [
+    { icon: '↑', bg: 'rgba(16,217,138,0.10)', desc: 'MARCAO FERRAGENS — NF686', sub: '19 mar · CFW · Pix', amount: '+R$ 1.322,21', amtColor: 'var(--green)', status: 'pago' },
+    { icon: '↑', bg: 'rgba(16,217,138,0.10)', desc: 'Venda NF680', sub: '17 mar · CFW · Pix', amount: '+R$ 2.873,79', amtColor: 'var(--green)', status: 'pago' },
+    { icon: '↓', bg: 'rgba(240,79,110,0.10)', desc: 'Fornecedor XPTO', sub: '15 mar · Retiparts · Boleto', amount: '−R$ 50.328,96', amtColor: 'var(--red)', status: 'pago' },
+    { icon: '↓', bg: 'rgba(245,166,35,0.10)', desc: 'Boleto Fornecedor CFW', sub: '22 mar · CFW · Boleto', amount: '−R$ 8.400,00', amtColor: 'var(--yellow)', status: 'pendente' },
+  ]},
+  cfw: { label: 'CFW — Indústria & Importadora', saldo: '+R$ 4.196,00', neg: false, entrada: 'R$ 4.196', saida: 'R$ 0', receber: 'R$ 15.000', pendente: 'R$ 8.400', trans: [
+    { icon: '↑', bg: 'rgba(16,217,138,0.10)', desc: 'MARCAO FERRAGENS — NF686', sub: '19 mar · Pix', amount: '+R$ 1.322,21', amtColor: 'var(--green)', status: 'pago' },
+    { icon: '↑', bg: 'rgba(16,217,138,0.10)', desc: 'Venda NF680', sub: '17 mar · Pix', amount: '+R$ 2.873,79', amtColor: 'var(--green)', status: 'pago' },
+  ]},
+  retiparts: { label: 'Retiparts — Autopeças', saldo: '−R$ 50.328,96', neg: true, entrada: 'R$ 0', saida: 'R$ 50.328', receber: 'R$ 0', pendente: 'R$ 12.500', trans: [
+    { icon: '↓', bg: 'rgba(240,79,110,0.10)', desc: 'Fornecedor XPTO', sub: '15 mar · Boleto', amount: '−R$ 50.328,96', amtColor: 'var(--red)', status: 'pago' },
+  ]},
+  pessoal: { label: 'Pessoal', saldo: '−R$ 8.023,24', neg: true, entrada: 'R$ 0', saida: 'R$ 8.023', receber: 'R$ 0', pendente: 'R$ 2.800', trans: [
+    { icon: '↓', bg: 'rgba(240,79,110,0.10)', desc: 'Despesas Pessoais', sub: 'Mar · Diversos', amount: '−R$ 8.023,24', amtColor: 'var(--red)', status: 'pago' },
+  ]}
+};
+let curEmpresa = 'geral';
+function renderDashboard() {
+  const d = empresas[curEmpresa];
+  document.getElementById('empresa-label').textContent = d.label;
+  const sv = document.getElementById('saldo-principal');
+  sv.textContent = d.saldo;
+  sv.className = 'saldo-valor ' + (d.neg ? 'neg' : 'pos');
+  document.getElementById('m-entrada').textContent = d.entrada;
+  document.getElementById('m-saida').textContent = d.saida;
+  document.getElementById('m-receber').textContent = d.receber;
+  document.getElementById('m-pendente').textContent = d.pendente;
+  const list = document.getElementById('trans-list');
+  list.innerHTML = '';
+  d.trans.forEach(t => {
+    list.innerHTML += `<div class="trans-item"><div class="trans-avatar" style="background:${t.bg}">${t.icon}</div><div style="flex:1;"><div class="trans-name">${t.desc}</div><div style="font-size:11px;color:var(--text2)">${t.sub}</div></div><div style="text-align:right;"><span class="trans-amount" style="color:${t.amtColor}">${t.amount}</span><span class="badge ${t.status}">${t.status === 'pago' ? 'Pago' : 'Pendente'}</span></div></div>`;
+  });
+}
+function selectEmpresa(el, key) {
+  document.querySelectorAll('.etab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  curEmpresa = key;
+  renderDashboard();
+}
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  el.classList.add('active');
+}
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  document.getElementById('themeIcon').textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+}
+if (localStorage.getItem('theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('themeIcon').textContent = '☀️';
+}
+renderDashboard();
+</script>
+</body>
+</html>
