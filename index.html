@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CFW Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c14;
+  --surface: #0f1520;
+  --surface2: #161e2e;
+  --surface3: #1c2638;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.10);
+  --text: #e8edf5;
+  --text2: #8a96aa;
+  --text3: #4a5568;
+  --green: #10d98a;
+  --green-dim: rgba(16,217,138,0.10);
+  --green-glow: rgba(16,217,138,0.20);
+  --red: #f04f6e;
+  --red-dim: rgba(240,79,110,0.10);
+  --blue: #3d8ef0;
+  --blue-dim: rgba(61,142,240,0.10);
+  --yellow: #f5a623;
+  --yellow-dim: rgba(245,166,35,0.10);
+}
+body.light {
+  --bg: #f0f4f8; --surface: #ffffff; --surface2: #f7f9fc; --surface3: #eef1f6;
+  --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12);
+  --text: #0f1520; --text2: #5a6478; --text3: #a0aab8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height: 100%; overflow: hidden; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; max-width: 430px; margin: 0 auto; transition: background 0.3s, color 0.3s; }
+.page-scroll { height: calc(100vh - 116px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.header { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+.header-brand { display: flex; align-items: center; gap: 8px; }
+.brand-badge { width: 28px; height: 28px; background: linear-gradient(135deg, #10d98a, #3d8ef0); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; font-size: 13px; }
+.brand-name { font-size: 16px; font-weight: 700; }
+.brand-name span { color: var(--green); }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.sync-btn { font-size: 16px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; border: none; background: none; color: var(--text); }
+.sync-btn:hover { opacity: 1; }
+.sync-btn.loading { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.theme-toggle { width: 36px; height: 20px; background: var(--surface3); border-radius: 10px; position: relative; cursor: pointer; border: 1px solid var(--border2); }
+.theme-toggle::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--green); top: 2px; left: 2px; transition: transform 0.3s; }
+body.light .theme-toggle::after { transform: translateX(16px); }
+.theme-icon { font-size: 14px; color: var(--text2); cursor: pointer; }
+.nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 60px; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 50; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; position: relative; }
+.nav-item.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 2px; background: var(--green); border-radius: 0 0 4px 4px; }
+.nav-icon { font-size: 19px; }
+.nav-label { font-size: 10px; font-weight: 500; color: var(--text3); }
+.nav-item.active .nav-label { color: var(--green); }
+.page { display: none; }
+.page.active { display: block; }
+.empresa-tabs { display: flex; padding: 16px 20px 0; gap: 6px; overflow-x: auto; }
+.etab { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+.etab.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.saldo-hero { margin: 16px 20px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; }
+.saldo-periodo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.saldo-empresa-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; }
+.period-filter { display: flex; background: var(--surface3); border-radius: 8px; padding: 2px; gap: 1px; }
+.pfbtn { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--text2); cursor: pointer; border: none; background: transparent; font-family: 'Outfit', sans-serif; transition: all 0.2s; }
+.pfbtn.active { background: var(--surface); color: var(--green); }
+.saldo-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+.saldo-valor { font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 16px; }
+.saldo-valor.pos { color: var(--green); }
+.saldo-valor.neg { color: var(--red); }
+.mini-chart { height: 44px; display: flex; align-items: flex-end; gap: 3px; margin-bottom: 4px; }
+.chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; justify-content: flex-end; }
+.chart-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 3px; transition: height 0.5s ease; }
+.chart-label { font-size: 8px; color: var(--text3); }
+.chart-legend { display: flex; gap: 12px; margin-top: 10px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+.legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 20px 0; }
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; }
+.metric-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.metric-icon-wrap { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.metric-trend { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
+.metric-lbl { font-size: 11px; color: var(--text2); margin-bottom: 3px; font-weight: 500; }
+.metric-val { font-size: 17px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.section-hdr { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 10px; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.section-count { font-size: 11px; color: var(--text2); background: var(--surface2); padding: 3px 8px; border-radius: 20px; border: 1px solid var(--border); }
+.trans-list { padding: 0 20px; }
+.trans-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.trans-avatar { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.trans-body { flex: 1; min-width: 0; }
+.trans-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.trans-sub { font-size: 11px; color: var(--text2); }
+.trans-right { text-align: right; flex-shrink: 0; }
+.trans-amount { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 3px; }
+.badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.badge.pago { background: var(--green-dim); color: var(--green); }
+.badge.pendente { background: var(--yellow-dim); color: var(--yellow); }
+.loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 12px; color: var(--text2); font-size: 13px; }
+.loading-spinner { width: 32px; height: 32px; border: 3px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.error-state { margin: 16px 20px; background: var(--red-dim); border: 1px solid rgba(240,79,110,0.25); border-radius: 14px; padding: 16px; text-align: center; font-size: 13px; color: var(--red); }
+.last-sync { font-size: 10px; color: var(--text3); text-align: center; padding: 8px; }
+.agenda-alert { margin: 16px 20px 0; background: linear-gradient(135deg, rgba(240,79,110,0.12), rgba(240,79,110,0.06)); border: 1px solid rgba(240,79,110,0.25); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.agenda-alert-icon { font-size: 22px; }
+.agenda-alert-body { flex: 1; }
+.agenda-alert-title { font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: 2px; }
+.agenda-alert-sub { font-size: 12px; color: var(--text2); }
+.month-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text2); padding: 16px 20px 8px; }
+.agenda-item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+.agenda-date-box { min-width: 44px; text-align: center; background: var(--surface2); border-radius: 10px; padding: 8px 4px; border: 1px solid var(--border); }
+.agenda-day { font-size: 20px; font-weight: 800; line-height: 1; color: var(--text); }
+.agenda-month { font-size: 9px; color: var(--text2); text-transform: uppercase; margin-top: 1px; }
+.agenda-info { flex: 1; min-width: 0; }
+.agenda-desc { font-size: 13px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agenda-meta { font-size: 11px; color: var(--text2); }
+.agenda-val { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.relatorio-cards { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 12px; }
+.rel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; cursor: pointer; transition: transform 0.15s, border-color 0.2s; }
+.rel-card:active { transform: scale(0.98); }
+.rel-card:hover { border-color: var(--border2); }
+.rel-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.rel-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.rel-arrow { font-size: 16px; color: var(--text3); }
+.rel-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.rel-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+.rel-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.rel-tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 1px solid var(--border2); color: var(--text2); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; backdrop-filter: blur(4px); align-items: flex-end; }
+.modal-overlay.open { display: flex; }
+.modal-sheet { width: 100%; background: var(--surface); border-radius: 24px 24px 0 0; padding: 20px 20px 40px; max-height: 85vh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+.modal-subtitle { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+.report-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.report-row-label { font-size: 13px; color: var(--text2); font-weight: 500; }
+.report-row-val { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.report-summary { background: var(--surface2); border-radius: 14px; padding: 16px; margin-top: 16px; border: 1px solid var(--border); }
+.report-summary-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; margin-bottom: 10px; }
+.report-highlight { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+.report-highlight span { font-size: 13px; color: var(--text2); }
+.report-highlight strong { font-size: 15px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.modal-close { width: 100%; padding: 14px; border-radius: 14px; background: var(--surface3); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; border: none; cursor: pointer; margin-top: 20px; }
+.bottom-space { height: 20px; }
+.empty-state { text-align: center; padding: 32px 20px; color: var(--text2); font-size: 13px; }
+.empty-state .emoji { font-size: 32px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="brand-badge">C</div>
+    <div class="brand-name">CFW<span> Pro</span></div>
+  </div>
+  <div class="header-actions">
+    <button class="sync-btn" id="syncBtn" onclick="syncData()" title="Sincronizar dados">↻</button>
+    <div class="theme-toggle" onclick="toggleTheme()"></div>
+    <span class="theme-icon" id="themeIcon">🌙</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-item active" onclick="navigate('dashboard',this)">
+    <span class="nav-icon">◻</span>
+    <span class="nav-label">Dashboard</span>
+  </div>
+  <div class="nav-item" onclick="navigate('agenda',this)">
+    <span class="nav-icon">📅</span>
+    <span class="nav-label">Agenda</span>
+  </div>
+  <div class="nav-item" onclick="navigate('relatorios',this)">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Relatórios</span>
+  </div>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="page active page-scroll" id="page-dashboard">
+  <div class="empresa-tabs">
+    <div class="etab active" onclick="selectEmpresa(this,'geral')">Geral</div>
+    <div class="etab" onclick="selectEmpresa(this,'CFW')">CFW</div>
+    <div class="etab" onclick="selectEmpresa(this,'Retiparts')">Retiparts</div>
+    <div class="etab" onclick="selectEmpresa(this,'Pessoal')">Pessoal</div>
+  </div>
+
+  <div class="saldo-hero">
+    <div class="saldo-periodo">
+      <div class="saldo-empresa-label" id="empresa-label">Consolidado</div>
+      <div class="period-filter">
+        <button class="pfbtn" onclick="setPeriod('sem',this)">Sem</button>
+        <button class="pfbtn active" onclick="setPeriod('mes',this)">Mês</button>
+        <button class="pfbtn" onclick="setPeriod('ano',this)">Ano</button>
+      </div>
+    </div>
+    <div class="saldo-label" id="periodo-label">Março 2026</div>
+    <div class="saldo-valor neg" id="saldo-principal">—</div>
+    <div class="mini-chart" id="miniChart"></div>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Entradas</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Saídas</div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-wrap" style="background:var(--green-dim)">↑</div>
+        <div class="metric-trend" style="background:var(--green-dim);color:var(--green)" id="trend-entrada">Mês</div>
+      </div>
+      <div class="metric-lbl">Entradas</div>
+      <div class="metric-val" style="color:var(--green)" id="m-entrada">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-wrap" style="background:var(--red-dim)">↓</div>
+        <div class="metric-trend" style="background:var(--red-dim);color:var(--red)" id="trend-saida">Mês</div>
+      </div>
+      <div class="metric-lbl">Saídas</div>
+      <div class="metric-val" style="color:var(--red)" id="m-saida">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-wrap" style="background:var(--yellow-dim)">⏳</div>
+        <div class="metric-trend" style="background:var(--yellow-dim);color:var(--yellow)" id="trend-receber">Mês</div>
+      </div>
+      <div class="metric-lbl">A Receber</div>
+      <div class="metric-val" style="color:var(--yellow)" id="m-receber">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-wrap" style="background:var(--red-dim)">📋</div>
+        <div class="metric-trend" style="background:var(--red-dim);color:var(--red)" id="trend-pendente">Mês</div>
+      </div>
+      <div class="metric-lbl">Pendentes</div>
+      <div class="metric-val" style="color:var(--red)" id="m-pendente">—</div>
+    </div>
+  </div>
+
+  <div class="section-hdr">
+    <span class="section-title">Lançamentos Recentes</span>
+    <span class="section-count" id="trans-count">—</span>
+  </div>
+  <div class="trans-list" id="trans-list">
+    <div class="loading-state"><div class="loading-spinner"></div>Carregando dados...</div>
+  </div>
+  <div class="last-sync" id="lastSync"></div>
+  <div class="bottom-space"></div>
+</div>
+
+<!-- AGENDA -->
+<div class="page page-scroll" id="page-agenda">
+  <div id="agenda-alert-wrap"></div>
+  <div id="agenda-list">
+    <div class="loading-state"><div class="loading-spinner"></div>Carregando agenda...</div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+
+<!-- RELATÓRIOS -->
+<div class="page page-scroll" id="page-relatorios">
+  <div class="relatorio-cards">
+    <div class="rel-card" onclick="openModal('dre')">
+      <div class="rel-card-top"><div class="rel-icon" style="background:var(--blue-dim)">📊</div><span class="rel-arrow">›</span></div>
+      <div class="rel-title">DRE — Resultado do Exercício</div>
+      <div class="rel-desc">Visão completa de receitas, custos e despesas. Indica se a empresa lucrou ou teve prejuízo no período.</div>
+      <div class="rel-tags"><span class="rel-tag">Receitas</span><span class="rel-tag">Custos</span><span class="rel-tag">Lucro Líquido</span></div>
+    </div>
+    <div class="rel-card" onclick="openModal('fluxo')">
+      <div class="rel-card-top"><div class="rel-icon" style="background:var(--green-dim)">💵</div><span class="rel-arrow">›</span></div>
+      <div class="rel-title">Fluxo de Caixa</div>
+      <div class="rel-desc">Acompanha entradas e saídas reais no período. Essencial para prever saldo e evitar surpresas.</div>
+      <div class="rel-tags"><span class="rel-tag">Saldo Inicial</span><span class="rel-tag">Projeção</span><span class="rel-tag">Saldo Final</span></div>
+    </div>
+    <div class="rel-card" onclick="openModal('aging')">
+      <div class="rel-card-top"><div class="rel-icon" style="background:var(--yellow-dim)">⏱</div><span class="rel-arrow">›</span></div>
+      <div class="rel-title">Aging — Análise de Inadimplência</div>
+      <div class="rel-desc">Mostra valores em aberto por faixa de prazo. Prioriza cobranças e revela risco de crédito.</div>
+      <div class="rel-tags"><span class="rel-tag">0–15 dias</span><span class="rel-tag">16–30 dias</span><span class="rel-tag">+60 dias</span></div>
+    </div>
+    <div class="rel-card" onclick="openModal('intercompany')">
+      <div class="rel-card-top"><div class="rel-icon" style="background:rgba(139,108,247,0.12)">🔄</div><span class="rel-arrow">›</span></div>
+      <div class="rel-title">Intercompany — CFW × Retiparts</div>
+      <div class="rel-desc">Consolida transações entre as empresas do grupo. Identifica saldo líquido e pendências internas.</div>
+      <div class="rel-tags"><span class="rel-tag">CFW → Retiparts</span><span class="rel-tag">Saldo Interno</span></div>
+    </div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+
+<!-- MODAIS RELATÓRIOS -->
+<div class="modal-overlay" id="modal-dre" onclick="closeModal('dre')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📊 DRE — <span id="dre-periodo">Março 2026</span></div>
+    <div class="modal-subtitle" id="dre-sub">Demonstração do Resultado do Exercício · Consolidado</div>
+    <div id="dre-content"></div>
+    <button class="modal-close" onclick="closeModal('dre')">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-fluxo" onclick="closeModal('fluxo')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💵 Fluxo de Caixa — <span id="fluxo-periodo">Março 2026</span></div>
+    <div class="modal-subtitle">Movimentações reais e projeção do período</div>
+    <div id="fluxo-content"></div>
+    <button class="modal-close" onclick="closeModal('fluxo')">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-aging" onclick="closeModal('aging')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⏱ Aging — <span id="aging-periodo">Mar 2026</span></div>
+    <div class="modal-subtitle">Valores em aberto por faixa de prazo</div>
+    <div id="aging-content"></div>
+    <button class="modal-close" onclick="closeModal('aging')">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-intercompany" onclick="closeModal('intercompany')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔄 Intercompany — <span id="ic-periodo">Mar 2026</span></div>
+    <div class="modal-subtitle">Transações entre CFW e Retiparts</div>
+    <div id="ic-content"></div>
+    <button class="modal-close" onclick="closeModal('intercompany')">Fechar</button>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvcUmXaPW0rXecTqki_JBjcAqvLe1dSMv2VSrFZukYaVJCzoNZbH9dDhfLnlrwkUnfog/exec';
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MESES_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let allData = [];
+let curEmpresa = 'geral';
+let curPeriod = 'mes';
+let lastSyncTime = null;
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function parseValor(v) {
+  if (!v) return 0;
+  return parseFloat(String(v).replace(',','.')) || 0;
+}
+
+function parseData(d) {
+  if (!d) return null;
+  if (d instanceof Date) return d;
+  if (String(d).includes('T')) return new Date(d);
+  const parts = String(d).split('/');
+  if (parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
+  return new Date(d);
+}
+
+function fmt(v) {
+  return 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtSaldo(v) {
+  const s = v >= 0 ? '+' : '−';
+  return s + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// ── NOVO: monta o título no padrão Tipo | Categoria | Cliente | R$ Valor ──────
+function tituloLancamento(r) {
+  const tipo = r['Tipo'] || '—';
+  const cat  = r['Categoria'] || '—';
+  const cli  = r['Cliente/Fornecedor'] || '—';
+  const val  = fmt(parseValor(r['Valor (R$)']));
+  return `${tipo} | ${cat} | ${cli} | ${val}`;
+}
+
+function getPeriodRange() {
+  const now = new Date();
+  if (curPeriod === 'mes') {
+    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth()+1, 0) };
+  }
+  if (curPeriod === 'sem') {
+    const day = now.getDay();
+    const s = new Date(now); s.setDate(now.getDate() - day);
+    const e = new Date(s); e.setDate(s.getDate() + 6);
+    return { start: s, end: e };
+  }
+  return { start: new Date(now.getFullYear(), 0, 1), end: new Date(now.getFullYear(), 11, 31) };
+}
+
+function getPeriodLabel() {
+  const now = new Date();
+  if (curPeriod === 'mes') return MESES_FULL[now.getMonth()] + ' ' + now.getFullYear();
+  if (curPeriod === 'ano') return 'Ano ' + now.getFullYear();
+  return 'Semana atual';
+}
+
+function filterData(empresa, period) {
+  const range = getPeriodRange();
+  return allData.filter(r => {
+    const dt = parseData(r['Data Lançamento'] || r['Data Pagamento']);
+    const inPeriod = !dt || (dt >= range.start && dt <= range.end);
+    const inEmpresa = empresa === 'geral' || (r._empresa && r._empresa.toLowerCase() === empresa.toLowerCase());
+    return inPeriod && inEmpresa;
+  });
+}
+
+// ─── DATA FETCH ───────────────────────────────────────────────────────────────
+async function fetchData() {
+  try {
+    const resp = await fetch(SCRIPT_URL + '?empresa=geral&t=' + Date.now());
+    const json = await resp.json();
+    if (json.registros) {
+      allData = json.registros.map(r => ({ ...r, _empresa: detectEmpresa(r) }));
+      lastSyncTime = new Date();
+      return true;
+    }
+  } catch(e) { console.error(e); }
+  return false;
+}
+
+function detectEmpresa(r) {
+  const id = String(r.ID || '').toUpperCase();
+  if (id.startsWith('CFW')) return 'CFW';
+  if (id.startsWith('RET')) return 'Retiparts';
+  if (id.startsWith('PES')) return 'Pessoal';
+  return 'CFW';
+}
+
+async function syncData() {
+  const btn = document.getElementById('syncBtn');
+  btn.classList.add('loading');
+  document.getElementById('trans-list').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div>Sincronizando...</div>';
+  const ok = await fetchData();
+  btn.classList.remove('loading');
+  if (ok) {
+    renderDashboard();
+    renderAgenda();
+    document.getElementById('lastSync').textContent = 'Última sync: ' + lastSyncTime.toLocaleTimeString('pt-BR');
+  } else {
+    document.getElementById('trans-list').innerHTML = '<div class="error-state">⚠️ Erro ao carregar dados.<br>Verifique sua conexão e tente novamente.</div>';
+  }
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const data = filterData(curEmpresa, curPeriod);
+
+  const labels = { geral: 'Consolidado', CFW: 'CFW — Indústria & Importadora', Retiparts: 'Retiparts — Autopeças', Pessoal: 'Pessoal' };
+  document.getElementById('empresa-label').textContent = labels[curEmpresa] || curEmpresa;
+  document.getElementById('periodo-label').textContent = getPeriodLabel();
+
+  let entrada = 0, saida = 0, receber = 0, pendente = 0;
+  data.forEach(r => {
+    const v = parseValor(r['Valor (R$)']);
+    const tipo = String(r['Tipo'] || '').toLowerCase();
+    const status = String(r['Status'] || '').toLowerCase();
+    if (tipo === 'entrada') {
+      if (status === 'pago') entrada += v;
+      else receber += v;
+    } else {
+      if (status === 'pago') saida += v;
+      else pendente += v;
+    }
+  });
+
+  const saldo = entrada - saida;
+  const sv = document.getElementById('saldo-principal');
+  sv.textContent = fmtSaldo(saldo);
+  sv.className = 'saldo-valor ' + (saldo >= 0 ? 'pos' : 'neg');
+
+  document.getElementById('m-entrada').textContent = fmt(entrada);
+  document.getElementById('m-saida').textContent = fmt(saida);
+  document.getElementById('m-receber').textContent = fmt(receber);
+  document.getElementById('m-pendente').textContent = fmt(pendente);
+
+  ['trend-entrada','trend-saida','trend-receber','trend-pendente'].forEach(id => {
+    document.getElementById(id).textContent = curPeriod === 'mes' ? 'Mês' : curPeriod === 'sem' ? 'Sem' : 'Ano';
+  });
+
+  renderTransList(data);
+  renderChart(data);
+  renderRelatorios(data);
+}
+
+function renderTransList(data) {
+  const list = document.getElementById('trans-list');
+  if (!data.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">📭</div>Nenhum lançamento no período</div>';
+    document.getElementById('trans-count').textContent = '0 registros';
+    return;
+  }
+
+  const sorted = [...data].sort((a,b) => {
+    const da = parseData(a['Data Lançamento']) || new Date(0);
+    const db = parseData(b['Data Lançamento']) || new Date(0);
+    return db - da;
+  }).slice(0, 20);
+
+  document.getElementById('trans-count').textContent = data.length + ' registro' + (data.length !== 1 ? 's' : '');
+
+  list.innerHTML = sorted.map(r => {
+    const tipo = String(r['Tipo'] || '').toLowerCase();
+    const status = String(r['Status'] || 'pago').toLowerCase();
+    const isEntrada = tipo === 'entrada';
+    const isPago = status === 'pago';
+    const v = parseValor(r['Valor (R$)']);
+    const empresa = r._empresa || '';
+    const dtRaw = parseData(r['Data Lançamento']);
+    const dtStr = dtRaw ? dtRaw.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}) : '—';
+
+    // ── CORREÇÃO: título segue o padrão Tipo | Categoria | Cliente | R$ Valor ──
+    const titulo = tituloLancamento(r);
+
+    return `<div class="trans-item">
+      <div class="trans-avatar" style="background:${isEntrada ? 'var(--green-dim)' : isPago ? 'var(--red-dim)' : 'var(--yellow-dim)'}">
+        ${isEntrada ? '↑' : '↓'}
+      </div>
+      <div class="trans-body">
+        <div class="trans-name">${titulo}</div>
+        <div class="trans-sub">${dtStr} · ${empresa} · ${r['Forma Pagto'] || '—'}</div>
+      </div>
+      <div class="trans-right">
+        <span class="trans-amount" style="color:${isEntrada ? 'var(--green)' : isPago ? 'var(--red)' : 'var(--yellow)'}">
+          ${isEntrada ? '+' : '−'}${fmt(v)}
+        </span>
+        <span class="badge ${isPago ? 'pago' : 'pendente'}">${isPago ? 'Pago' : 'Pendente'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart(data) {
+  const chart = document.getElementById('miniChart');
+  const weeks = curPeriod === 'sem' ? 7 : curPeriod === 'mes' ? 8 : 12;
+  const labels = curPeriod === 'ano'
+    ? MESES.slice(0, 12)
+    : Array.from({length: weeks}, (_, i) => `S${i+1}`);
+
+  const buckets = Array.from({length: weeks}, () => ({ e: 0, s: 0 }));
+  const range = getPeriodRange();
+  const spanMs = range.end - range.start;
+  const bucketMs = spanMs / weeks;
+
+  data.forEach(r => {
+    const dt = parseData(r['Data Lançamento']);
+    if (!dt) return;
+    const idx = Math.min(Math.floor((dt - range.start) / bucketMs), weeks - 1);
+    if (idx < 0) return;
+    const v = parseValor(r['Valor (R$)']);
+    if (String(r['Tipo']).toLowerCase() === 'entrada') buckets[idx].e += v;
+    else buckets[idx].s += v;
+  });
+
+  const maxVal = Math.max(...buckets.map(b => Math.max(b.e, b.s)), 1);
+
+  chart.innerHTML = buckets.map((b, i) => {
+    const gh = Math.max((b.e / maxVal) * 100, 3);
+    const rh = Math.max((b.s / maxVal) * 100, 3);
+    return `<div class="chart-bar-wrap">
+      <div class="chart-bar" style="height:${gh}%;background:var(--green);opacity:0.7"></div>
+      <div class="chart-bar" style="height:${rh}%;background:var(--red);opacity:0.7;margin-top:2px"></div>
+      <div class="chart-label">${labels[i]}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── AGENDA ───────────────────────────────────────────────────────────────────
+function renderAgenda() {
+  const hoje = new Date();
+  const pendentes = allData
+    .filter(r => {
+      const status = String(r['Status'] || '').toLowerCase();
+      return status !== 'pago' && r['Data Vencimento'];
+    })
+    .map(r => ({ ...r, _dt: parseData(r['Data Vencimento']) }))
+    .filter(r => r._dt)
+    .sort((a, b) => a._dt - b._dt);
+
+  const alertWrap = document.getElementById('agenda-alert-wrap');
+  const venc3 = pendentes.filter(r => {
+    const diff = (r._dt - hoje) / (1000 * 60 * 60 * 24);
+    return diff >= 0 && diff <= 3;
+  });
+
+  if (venc3.length > 0) {
+    const p = venc3[0];
+    alertWrap.innerHTML = `<div class="agenda-alert">
+      <div class="agenda-alert-icon">⚠️</div>
+      <div class="agenda-alert-body">
+        <div class="agenda-alert-title">${venc3.length} vencimento${venc3.length > 1 ? 's' : ''} em até 3 dias</div>
+        <div class="agenda-alert-sub">${p._empresa} · ${fmt(parseValor(p['Valor (R$)']))} · ${p._dt.toLocaleDateString('pt-BR')}</div>
+      </div>
+    </div>`;
+  } else {
+    alertWrap.innerHTML = '';
+  }
+
+  const agendaList = document.getElementById('agenda-list');
+  if (!pendentes.length) {
+    agendaList.innerHTML = '<div class="empty-state"><div class="emoji">✅</div>Nenhum vencimento pendente</div>';
+    return;
+  }
+
+  let html = '';
+  let lastMonth = -1;
+  pendentes.forEach(r => {
+    const m = r._dt.getMonth();
+    const y = r._dt.getFullYear();
+    if (m !== lastMonth) {
+      html += `<div class="month-label">${MESES_FULL[m]} ${y}</div>`;
+      lastMonth = m;
+    }
+
+    const tipo = String(r['Tipo'] || '').toLowerCase();
+    const isEntrada = tipo === 'entrada';
+    const v = parseValor(r['Valor (R$)']);
+    const diffDays = Math.ceil((r._dt - hoje) / (1000 * 60 * 60 * 24));
+    const isUrgente = diffDays >= 0 && diffDays <= 3;
+    const isVencido = diffDays < 0;
+
+    const boxStyle = isVencido
+      ? 'background:var(--red-dim);border-color:rgba(240,79,110,0.25)'
+      : isUrgente
+        ? 'background:var(--yellow-dim);border-color:rgba(245,166,35,0.25)'
+        : '';
+
+    const dayColor = isVencido ? 'color:var(--red)' : isUrgente ? 'color:var(--yellow)' : '';
+    const statusLabel = isVencido ? '<span style="color:var(--red)">Vencido</span>' : '<span style="color:var(--yellow)">Pendente</span>';
+
+    // ── CORREÇÃO: título da agenda segue o mesmo padrão ──────────────────────
+    const titulo = tituloLancamento(r);
+
+    html += `<div class="agenda-item">
+      <div class="agenda-date-box" style="${boxStyle}">
+        <div class="agenda-day" style="${dayColor}">${String(r._dt.getDate()).padStart(2,'0')}</div>
+        <div class="agenda-month">${MESES[m]}</div>
+      </div>
+      <div class="agenda-info">
+        <div class="agenda-desc">${isEntrada ? '💰' : '💸'} ${titulo}</div>
+        <div class="agenda-meta">${r._empresa} · ${r['Forma Pagto'] || '—'} · ${statusLabel}</div>
+      </div>
+      <div class="agenda-val" style="color:${isEntrada ? 'var(--green)' : 'var(--red)'}">
+        ${isEntrada ? '+' : '−'}${fmt(v)}
+      </div>
+    </div>`;
+  });
+
+  agendaList.innerHTML = html;
+}
+
+// ─── RELATÓRIOS ───────────────────────────────────────────────────────────────
+function renderRelatorios(data) {
+  const periodo = getPeriodLabel();
+
+  let recBruta = 0, custoMerc = 0, despAdm = 0, despFin = 0;
+  data.forEach(r => {
+    const v = parseValor(r['Valor (R$)']);
+    const tipo = String(r['Tipo'] || '').toLowerCase();
+    const cat = String(r['Categoria'] || '').toLowerCase();
+    const status = String(r['Status'] || '').toLowerCase();
+    if (tipo === 'entrada' && status === 'pago') recBruta += v;
+    else if (status === 'pago') {
+      if (cat.includes('custo') || cat.includes('mercadoria') || cat.includes('estoque')) custoMerc += v;
+      else if (cat.includes('financ') || cat.includes('juros') || cat.includes('banco')) despFin += v;
+      else despAdm += v;
+    }
+  });
+  const ebitda = recBruta - custoMerc - despAdm;
+  const lucro = ebitda - despFin;
+
+  document.getElementById('dre-periodo').textContent = periodo;
+  document.getElementById('dre-sub').textContent = `Demonstração do Resultado · ${curEmpresa === 'geral' ? 'Consolidado' : curEmpresa}`;
+  document.getElementById('dre-content').innerHTML = `
+    <div class="report-row"><span class="report-row-label">Receita Bruta</span><span class="report-row-val" style="color:var(--green)">+${fmt(recBruta)}</span></div>
+    <div class="report-row"><span class="report-row-label">(−) Custos Operacionais</span><span class="report-row-val" style="color:var(--red)">−${fmt(custoMerc)}</span></div>
+    <div class="report-row"><span class="report-row-label">(−) Despesas Administrativas</span><span class="report-row-val" style="color:var(--red)">−${fmt(despAdm)}</span></div>
+    <div class="report-row"><span class="report-row-label">(−) Despesas Financeiras</span><span class="report-row-val" style="color:${despFin > 0 ? 'var(--red)' : 'var(--text2)'}">−${fmt(despFin)}</span></div>
+    <div class="report-summary">
+      <div class="report-summary-title">Resultado</div>
+      <div class="report-highlight"><span>EBITDA</span><strong style="color:${ebitda >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSaldo(ebitda)}</strong></div>
+      <div class="report-highlight"><span>Lucro/Prejuízo Líquido</span><strong style="color:${lucro >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSaldo(lucro)}</strong></div>
+    </div>`;
+
+  let entReal = 0, saiReal = 0, aReceber = 0, aPagar = 0;
+  data.forEach(r => {
+    const v = parseValor(r['Valor (R$)']);
+    const tipo = String(r['Tipo'] || '').toLowerCase();
+    const status = String(r['Status'] || '').toLowerCase();
+    if (tipo === 'entrada') { if (status === 'pago') entReal += v; else aReceber += v; }
+    else { if (status === 'pago') saiReal += v; else aPagar += v; }
+  });
+  const saldoAtual = entReal - saiReal;
+  const saldoProj = saldoAtual + aReceber - aPagar;
+
+  document.getElementById('fluxo-periodo').textContent = periodo;
+  document.getElementById('fluxo-content').innerHTML = `
+    <div class="report-row"><span class="report-row-label">Saldo Inicial</span><span class="report-row-val">R$ 0,00</span></div>
+    <div class="report-row"><span class="report-row-label">(+) Entradas Realizadas</span><span class="report-row-val" style="color:var(--green)">+${fmt(entReal)}</span></div>
+    <div class="report-row"><span class="report-row-label">(−) Saídas Realizadas</span><span class="report-row-val" style="color:var(--red)">−${fmt(saiReal)}</span></div>
+    <div class="report-row"><span class="report-row-label">(+) A Receber (previsto)</span><span class="report-row-val" style="color:var(--yellow)">+${fmt(aReceber)}</span></div>
+    <div class="report-row"><span class="report-row-label">(−) A Pagar (previsto)</span><span class="report-row-val" style="color:var(--red)">−${fmt(aPagar)}</span></div>
+    <div class="report-summary">
+      <div class="report-summary-title">Projeção</div>
+      <div class="report-highlight"><span>Saldo Atual</span><strong style="color:${saldoAtual >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSaldo(saldoAtual)}</strong></div>
+      <div class="report-highlight"><span>Saldo Projetado</span><strong style="color:${saldoProj >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSaldo(saldoProj)}</strong></div>
+    </div>`;
+
+  const hoje = new Date();
+  let a0=0, a15=0, a30=0, a60=0;
+  data.forEach(r => {
+    const status = String(r['Status'] || '').toLowerCase();
+    if (status === 'pago') return;
+    const dt = parseData(r['Data Vencimento']);
+    if (!dt) return;
+    const diff = Math.ceil((hoje - dt) / (1000*60*60*24));
+    const v = parseValor(r['Valor (R$)']);
+    if (diff <= 0) a0 += v;
+    else if (diff <= 15) a15 += v;
+    else if (diff <= 30) a30 += v;
+    else a60 += v;
+  });
+  const totalAberto = a0 + a15 + a30 + a60;
+  const risco = a60 > 0 ? 'Alto' : a30 > 0 ? 'Médio' : 'Baixo';
+  const riscoColor = a60 > 0 ? 'var(--red)' : a30 > 0 ? 'var(--yellow)' : 'var(--green)';
+
+  document.getElementById('aging-periodo').textContent = periodo;
+  document.getElementById('aging-content').innerHTML = `
+    <div class="report-row"><span class="report-row-label">🟢 A vencer / 0–15 dias</span><span class="report-row-val" style="color:var(--green)">${fmt(a0)}</span></div>
+    <div class="report-row"><span class="report-row-label">🟡 Vencido 1–15 dias</span><span class="report-row-val" style="color:var(--yellow)">${fmt(a15)}</span></div>
+    <div class="report-row"><span class="report-row-label">🟠 Vencido 16–30 dias</span><span class="report-row-val" style="color:var(--text2)">${fmt(a30)}</span></div>
+    <div class="report-row"><span class="report-row-label">🔴 Vencido +30 dias</span><span class="report-row-val" style="color:var(--red)">${fmt(a60)}</span></div>
+    <div class="report-summary">
+      <div class="report-summary-title">Resumo</div>
+      <div class="report-highlight"><span>Total em Aberto</span><strong style="color:var(--yellow)">${fmt(totalAberto)}</strong></div>
+      <div class="report-highlight"><span>Risco de Crédito</span><strong style="color:${riscoColor}">${risco}</strong></div>
+    </div>`;
+
+  let cfwRet = 0, retCfw = 0;
+  allData.forEach(r => {
+    const dest = String(r['Empresa Destino'] || '').toLowerCase();
+    const emp = String(r._empresa || '').toLowerCase();
+    const v = parseValor(r['Valor (R$)']);
+    if (emp === 'cfw' && dest.includes('retiparts')) cfwRet += v;
+    if (emp === 'retiparts' && dest.includes('cfw')) retCfw += v;
+  });
+  const saldoIC = cfwRet - retCfw;
+
+  document.getElementById('ic-periodo').textContent = periodo;
+  document.getElementById('ic-content').innerHTML = `
+    <div class="report-row"><span class="report-row-label">Vendas CFW → Retiparts</span><span class="report-row-val" style="color:${cfwRet > 0 ? 'var(--green)' : 'var(--text2)'}">+${fmt(cfwRet)}</span></div>
+    <div class="report-row"><span class="report-row-label">Vendas Retiparts → CFW</span><span class="report-row-val" style="color:${retCfw > 0 ? 'var(--blue)' : 'var(--text2)'}">+${fmt(retCfw)}</span></div>
+    <div class="report-row"><span class="report-row-label">Pendências Internas</span><span class="report-row-val" style="color:var(--text2)">—</span></div>
+    <div class="report-summary">
+      <div class="report-summary-title">Saldo Interno</div>
+      <div class="report-highlight"><span>Saldo CFW/Retiparts</span><strong style="color:${saldoIC >= 0 ? 'var(--blue)' : 'var(--yellow)'}">${fmtSaldo(saldoIC)}</strong></div>
+      <div class="report-highlight"><span>Status</span><strong style="color:${saldoIC === 0 ? 'var(--green)' : 'var(--yellow)'}">${saldoIC === 0 ? 'Zerado' : 'Pendente'}</strong></div>
+    </div>`;
+}
+
+// ─── UI CONTROLS ──────────────────────────────────────────────────────────────
+function selectEmpresa(el, key) {
+  document.querySelectorAll('.etab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  curEmpresa = key;
+  renderDashboard();
+}
+
+function setPeriod(p, el) {
+  document.querySelectorAll('.pfbtn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  curPeriod = p;
+  renderDashboard();
+}
+
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-' + page).scrollTop = 0;
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  document.getElementById('themeIcon').textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
+function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
+function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(async function init() {
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light');
+    document.getElementById('themeIcon').textContent = '☀️';
+  }
+  await syncData();
+})();
+</script>
+</body>
+</html>
